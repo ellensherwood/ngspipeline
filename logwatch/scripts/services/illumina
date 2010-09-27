@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+# Illumina(tm) HiSeq 2000 for logwatch
+
+##########################################################################
+# Illumina-logwatch: written and maintained by:
+#
+#    Roman Valls Guimerà <roman.valls.guimera+logwatch@scilifelab.se>
+#
+# Please send all comments, suggestions, bug reports to the logwatch
+# mailing list (logwatch@logwatch.org), or to the email address above.
+# I will respond as quickly as possible.
+#
+# Copyright (C) 2010  Roman Valls Guimerà
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+# For now focused on Other.txt
+
+# TODO: Howto prevent subsequent logwatch runs reporting the same Illumina run ? :-S
+#	Tweak logwatch --range appropiately !!!
+
+use strict;
+use warnings;
+
+use Date::Manip;
+use File::Find;
+
+$ENV{PRINTING} = "y";
+
+my $Debug = $ENV{'LOGWATCH_DEBUG'} || 0;
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 0;
+my $logwatch_hostname = $ENV{'LOGWATCH_ONLY_HOSTNAME'};
+
+my $ThisLine;
+my $date;
+my ($RunsFinished, $RunTimeStamp);
+
+while (defined($ThisLine = <STDIN>)) {
+
+	if ($ThisLine =~ /Processing completed\. Run has finished/) {
+		$RunsFinished++;
+
+		if ($ThisLine =~ /(\d+\/\d+\/\d+),(\d+:\d+:\d+\.\d+)/) { $RunTimeStamp = "$1\@$2" };
+#		$date=UnixDate($RunTimeStamp);
+	}
+}
+
+## TODO: Correlate with RunInfo.xml
+
+print "$RunTimeStamp\n";
+
+if ($RunsFinished == 1) { print "ok\n" }
+if ($RunsFinished > 1) { print "err\n" }
+
+#print "$RunsFinished\n";
+#print "$date\n";
+
+exit(0);
